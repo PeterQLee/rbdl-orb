@@ -1,4 +1,4 @@
-#define RBDL_USE_CASADI_MATH
+
 #include <rbdl/rbdl.h>
 
 #include "urdfreader.h"
@@ -213,22 +213,29 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
     Joint rbdl_joint;
     if (urdf_joint->type == UrdfJointType::REVOLUTE ||
         urdf_joint->type == UrdfJointType::CONTINUOUS) {
-      rbdl_joint = Joint(SpatialVector(urdf_joint->axis.x, urdf_joint->axis.y,
-                                       urdf_joint->axis.z, 0., 0., 0.));
+      if (urdf_joint->axis.x == 1) {
+	rbdl_joint = Joint(JointType::JointTypeRevoluteX);
+      }
+      else if (urdf_joint->axis.y == 1){
+	rbdl_joint = Joint(JointType::JointTypeRevoluteY);
+      }
+      else if (urdf_joint->axis.z == 1){
+	rbdl_joint = Joint(JointType::JointTypeRevoluteZ);
+      }
+      else{
+	ostringstream error_msg;
+	error_msg << "Error while processing joint '" << urdf_joint->name
+		  << "': Revolute joint does not have a rotational axis!" << endl;
+	throw RBDLFileParseError(error_msg.str());
+      }
     } else if (urdf_joint->type == UrdfJointType::PRISMATIC) {
-      rbdl_joint = Joint(SpatialVector(0., 0., 0., urdf_joint->axis.x,
-                                       urdf_joint->axis.y, urdf_joint->axis.z));
+      
+      rbdl_joint = Joint(JointType::JointTypePrismatic);
     } else if (urdf_joint->type == UrdfJointType::FIXED) {
       rbdl_joint = Joint(JointTypeFixed);
     } else if (urdf_joint->type == UrdfJointType::FLOATING) {
       // todo: what order of DoF should be used?
-      rbdl_joint = Joint(
-        SpatialVector(0., 0., 0., 1., 0., 0.),
-        SpatialVector(0., 0., 0., 0., 1., 0.),
-        SpatialVector(0., 0., 0., 0., 0., 1.),
-        SpatialVector(1., 0., 0., 0., 0., 0.),
-        SpatialVector(0., 1., 0., 0., 0., 0.),
-        SpatialVector(0., 0., 1., 0., 0., 0.));
+      rbdl_joint = Joint(JointType::JointTypeFloatingBase);
     } else if (urdf_joint->type == UrdfJointType::PLANAR) {
       // todo: which two directions should be used that are perpendicular
       // to the specified axis?
@@ -237,6 +244,7 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
                 << "': planar joints not yet supported!" << endl;
       throw RBDLFileParseError(error_msg.str());
     }
+
 
     // compute the joint transformation
     urdf::Vector3 joint_rpy_temp;
