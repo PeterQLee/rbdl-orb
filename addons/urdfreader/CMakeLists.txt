@@ -4,8 +4,7 @@ LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake )
 
 SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
 	LINKER_LANGUAGE CXX
-)
-
+	)
 
 INCLUDE_DIRECTORIES (
 	${CMAKE_CURRENT_BINARY_DIR}/include/rbdl
@@ -88,7 +87,8 @@ ELSE (RBDL_BUILD_STATIC)
     rbdl
 		${URDFREADER_DEPENDENCIES}
 		)
-  IF (RBDL_USE_CASADI_MATH) # Build seperate library for casadi
+    IF (RBDL_USE_CASADI_MATH) # Build seperate library for casadi
+
 	FIND_PACKAGE (Casadi REQUIRED)
 		
 	ADD_LIBRARY(rbdl-casadi_urdfreader SHARED ${URDFREADER_SOURCES} )
@@ -96,12 +96,13 @@ ELSE (RBDL_BUILD_STATIC)
 		VERSION ${RBDL_VERSION}
 		SOVERSION ${RBDL_SO_VERSION}
 		)
-	target_compile_definitions(rbdl-casadi_urdfreader PUBLIC RBDL_USE_CASADI_MATH)
-	TARGET_LINK_LIBRARIES (rbdl_urdfreader
-    rbdl
+	TARGET_COMPILE_DEFINITIONS(rbdl-casadi_urdfreader PUBLIC RBDL_USE_CASADI_MATH)
+	TARGET_LINK_LIBRARIES (rbdl-casadi_urdfreader
+    rbdl-casadi
 		${URDFREADER_DEPENDENCIES}
 		)
-	      target_include_directories(rbdl-casadi_urdfreader PRIVATE ${Casadi_INCLUDE_DIR})
+
+        TARGET_INCLUDE_DIRECTORIES(rbdl-casadi_urdfreader PUBLIC BEFORE ${Casadi_INCLUDE_DIR} ${Casadi_INCLUDE_DIR}/..)
 	INSTALL (TARGETS rbdl-casadi_urdfreader
 		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

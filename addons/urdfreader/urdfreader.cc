@@ -1,4 +1,3 @@
-
 #include <rbdl/rbdl.h>
 
 #include "urdfreader.h"
