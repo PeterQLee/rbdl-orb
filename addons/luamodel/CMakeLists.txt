@@ -20,8 +20,11 @@ SET ( LUAMODEL_SOURCES
   )
 
 IF(RBDL_BUILD_EXECUTABLES)
-ADD_EXECUTABLE (rbdl_luamodel_util rbdl_luamodel_util.cc)
+  ADD_EXECUTABLE (rbdl_luamodel_util rbdl_luamodel_util.cc)
+  ADD_EXECUTABLE (test_casadi_luareader test_casadi_luareader.cc)
+  ADD_EXECUTABLE (test_eigen_luareader test_eigen_luareader.cc)
 ENDIF(RBDL_BUILD_EXECUTABLES)
+
 
 IF (RBDL_BUILD_STATIC)
   ADD_LIBRARY ( rbdl_luamodel-static STATIC ${LUAMODEL_SOURCES} )
@@ -55,7 +58,8 @@ IF (RBDL_BUILD_STATIC)
       rbdl-static
       ${LUA_LIBRARIES}
 	    ${LUA_LIBRARY}
-    )
+	    )
+
     ENDIF(RBDL_BUILD_EXECUTABLES)
   ENDIF(RBDL_BUILD_ADDON_MUSCLE)
 
@@ -79,6 +83,16 @@ ELSE (RBDL_BUILD_STATIC)
     VERSION ${RBDL_VERSION}
     SOVERSION ${RBDL_SO_VERSION}
     )
+  IF (RBDL_USE_CASADI_MATH) # Build seperate library for casadi
+    ADD_LIBRARY ( rbdl-casadi_luamodel SHARED ${LUAMODEL_SOURCES} )
+    SET_TARGET_PROPERTIES ( rbdl-casadi_luamodel PROPERTIES
+      VERSION ${RBDL_VERSION}
+      SOVERSION ${RBDL_SO_VERSION}
+    )
+    TARGET_COMPILE_DEFINITIONS(rbdl-casadi_luamodel PUBLIC RBDL_USE_CASADI_MATH)
+    
+  
+  ENDIF (RBDL_USE_CASADI_MATH)
 
   IF(RBDL_BUILD_ADDON_MUSCLE)
     TARGET_LINK_LIBRARIES (rbdl_luamodel
@@ -91,18 +105,40 @@ ELSE (RBDL_BUILD_STATIC)
       rbdl_luamodel
       rbdl_muscle            
       rbdl
+      )
+    TARGET_LINK_LIBRARIES (rbdl_luamodel_util
+      rbdl_luamodel
+      rbdl_muscle            
+      rbdl
     )
     ENDIF(RBDL_BUILD_EXECUTABLES)
   ELSE(RBDL_BUILD_ADDON_MUSCLE)
     TARGET_LINK_LIBRARIES (rbdl_luamodel
       rbdl
       ${LUA_LIBRARIES}
+      )
+    IF (RBDL_USE_CASADI_MATH)
+    TARGET_LINK_LIBRARIES (rbdl-casadi_luamodel
+        rbdl-casadi
+        ${LUA_LIBRARIES}
     )
+    ENDIF (RBDL_USE_CASADI_MATH)
+
     IF(RBDL_BUILD_EXECUTABLES)
     TARGET_LINK_LIBRARIES (rbdl_luamodel_util
       rbdl_luamodel
       rbdl
-    )
+      )
+    IF (RBDL_USE_CASADI_MATH)
+    TARGET_LINK_LIBRARIES (test_casadi_luareader
+      rbdl-casadi_luamodel
+      rbdl-casadi
+      )
+    ENDIF (RBDL_USE_CASADI_MATH)
+    TARGET_LINK_LIBRARIES (test_eigen_luareader
+      rbdl_luamodel
+      rbdl
+      )
     ENDIF(RBDL_BUILD_EXECUTABLES)
   ENDIF(RBDL_BUILD_ADDON_MUSCLE)
 
