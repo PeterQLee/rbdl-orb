@@ -21,7 +21,9 @@ SET ( LUAMODEL_SOURCES
 
 IF(RBDL_BUILD_EXECUTABLES)
   ADD_EXECUTABLE (rbdl_luamodel_util rbdl_luamodel_util.cc)
-  ADD_EXECUTABLE (test_casadi_luareader test_casadi_luareader.cc)
+  IF (RBDL_USE_CASADI_MATH)
+    ADD_EXECUTABLE (test_casadi_luareader test_casadi_luareader.cc)
+  ENDIF(RBDL_USE_CASADI_MATH)
   ADD_EXECUTABLE (test_eigen_luareader test_eigen_luareader.cc)
 ENDIF(RBDL_BUILD_EXECUTABLES)
 
@@ -157,7 +159,7 @@ ELSE (RBDL_BUILD_STATIC)
     )
 
   IF (RBDL_USE_CASADI_MATH) # Install casadi luamodel
-    INSTALL(
+    INSTALL(TARGETS rbdl-casadi_luamodel
      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
