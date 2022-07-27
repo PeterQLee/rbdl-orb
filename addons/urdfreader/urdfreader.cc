@@ -212,29 +212,22 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
     Joint rbdl_joint;
     if (urdf_joint->type == UrdfJointType::REVOLUTE ||
         urdf_joint->type == UrdfJointType::CONTINUOUS) {
-      if (urdf_joint->axis.x == 1) {
-	rbdl_joint = Joint(JointType::JointTypeRevoluteX);
-      }
-      else if (urdf_joint->axis.y == 1){
-	rbdl_joint = Joint(JointType::JointTypeRevoluteY);
-      }
-      else if (urdf_joint->axis.z == 1){
-	rbdl_joint = Joint(JointType::JointTypeRevoluteZ);
-      }
-      else{
-	ostringstream error_msg;
-	error_msg << "Error while processing joint '" << urdf_joint->name
-		  << "': Revolute joint does not have a rotational axis!" << endl;
-	throw RBDLFileParseError(error_msg.str());
-      }
+      rbdl_joint = Joint(SpatialVector(urdf_joint->axis.x, urdf_joint->axis.y,
+                                       urdf_joint->axis.z, 0., 0., 0.));
     } else if (urdf_joint->type == UrdfJointType::PRISMATIC) {
-      
-      rbdl_joint = Joint(JointType::JointTypePrismatic);
+      rbdl_joint = Joint(SpatialVector(0., 0., 0., urdf_joint->axis.x,
+                                       urdf_joint->axis.y, urdf_joint->axis.z));
     } else if (urdf_joint->type == UrdfJointType::FIXED) {
       rbdl_joint = Joint(JointTypeFixed);
     } else if (urdf_joint->type == UrdfJointType::FLOATING) {
       // todo: what order of DoF should be used?
-      rbdl_joint = Joint(JointType::JointTypeFloatingBase);
+      rbdl_joint = Joint(
+        SpatialVector(0., 0., 0., 1., 0., 0.),
+        SpatialVector(0., 0., 0., 0., 1., 0.),
+        SpatialVector(0., 0., 0., 0., 0., 1.),
+        SpatialVector(1., 0., 0., 0., 0., 0.),
+        SpatialVector(0., 1., 0., 0., 0., 0.),
+        SpatialVector(0., 0., 1., 0., 0., 0.));
     } else if (urdf_joint->type == UrdfJointType::PLANAR) {
       // todo: which two directions should be used that are perpendicular
       // to the specified axis?
